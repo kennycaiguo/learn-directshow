@@ -1,0 +1,55 @@
+// consoleplayer.cpp : 定义控制台应用程序的入口点。
+//
+
+#include "stdafx.h"
+#include<DShow.h>
+#pragma comment(lib,"strmiids.lib")
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	IGraphBuilder *pGraph = NULL;
+	IMediaControl *pControl = NULL;
+    IMediaEvent* pEvent = NULL;
+	//初始化com库
+	HRESULT hr=CoInitialize(NULL);
+	//判断是否初始化成功
+	if(FAILED(hr))
+	{
+		 printf("Init Com Failed...\n");
+		 return -1;
+	}
+	//创建过滤器图表过滤器
+	hr=CoCreateInstance(CLSID_FilterGraph,NULL,CLSCTX_INPROC_SERVER,IID_IGraphBuilder,(void**)&pGraph);
+	if(FAILED(hr))
+	{
+		 printf("fail to create filter graph manager...\n");
+		 return -1;
+	}
+	//通过pGraph指针查询IMediaControl和IMediaEvent接口
+	hr= pGraph->QueryInterface(IID_IMediaControl,(void**)&pControl);
+	hr= pGraph->QueryInterface(IID_IMediaEvent,(void**)&pEvent);
+
+	//创建链表
+	//hr =pGraph->RenderFile(L"d:\\me.avi",NULL); //ok
+	hr =pGraph->RenderFile(L"d:\\fgf18.avi",NULL); //ok
+	if(SUCCEEDED(hr))
+	{
+		 //播放媒体
+		hr=pControl->Run();
+		if(SUCCEEDED(hr))
+	   {//等待回放结束
+		 long eventCode;
+		 pEvent->WaitForCompletion(INFINITE,&eventCode);
+		}
+
+	}
+
+	//释放资源和关闭com库
+	pControl->Release();
+	pEvent->Release();
+	pGraph->Release();
+	CoUninitialize();
+
+	return 0;
+}
+
